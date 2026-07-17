@@ -1,0 +1,164 @@
+// FounderOS — Prisma Schema v5
+// ═══════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════
+// User (mirrors Clerk user)
+// ═══════════════════════════════════════
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  avatarUrl String?
+  companies Company[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+// ═══════════════════════════════════════
+// Company (Workspace)
+// ═══════════════════════════════════════
+
+model Company {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  projects    Project[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("companies")
+}
+
+// ═══════════════════════════════════════
+// Project
+// ═══════════════════════════════════════
+
+model Project {
+  id              String            @id @default(cuid())
+  companyId       String
+  company         Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  status          String            @default("active")
+  memories        Memory[]
+  conversations   Conversation[]
+  researchReports ResearchReport[]
+  businessModels  BusinessModel[]
+  roadmaps        Roadmap[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@map("projects")
+}
+
+// ═══════════════════════════════════════
+// Business Memory (core table)
+// ═══════════════════════════════════════
+
+model Memory {
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type        String    @default("note")
+  title       String
+  content     String
+  metadata    Json      @default("{}")
+  importance  Int       @default(1)
+  source      String    @default("manual")
+  linkedTo    String[]  @default([])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([projectId])
+  @@index([type])
+  @@map("memories")
+}
+
+// ═══════════════════════════════════════
+// Conversation
+// ═══════════════════════════════════════
+
+model Conversation {
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role        String
+  content     String
+  intent      String?
+  modelUsed   String?
+  metadata    Json      @default("{}")
+  createdAt   DateTime  @default(now())
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@map("conversations")
+}
+
+// ═══════════════════════════════════════
+// Research Report
+// ═══════════════════════════════════════
+
+model ResearchReport {
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  topic       String
+  summary     String?
+  content     String
+  sections    Json      @default("[]")
+  modelUsed   String?
+  status      String    @default("completed")
+  createdAt   DateTime  @default(now())
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@map("research_reports")
+}
+
+// ═══════════════════════════════════════
+// Business Model Canvas
+// ═══════════════════════════════════════
+
+model BusinessModel {
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int       @default(1)
+  canvas      Json
+  modelUsed   String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([projectId, version])
+  @@index([projectId, createdAt(sort: Desc)])
+  @@map("business_models")
+}
+
+// ═══════════════════════════════════════
+// Roadmap
+// ═══════════════════════════════════════
+
+model Roadmap {
+  id          String    @id @default(cuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version     Int       @default(1)
+  phases      Json
+  modelUsed   String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([projectId, version])
+  @@index([projectId, createdAt(sort: Desc)])
+  @@map("roadmaps")
+}
