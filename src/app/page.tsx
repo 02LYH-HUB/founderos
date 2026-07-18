@@ -26,7 +26,7 @@ export default async function Home() {
         className="text-4xl sm:text-5xl font-black tracking-[-0.03em] leading-[1.05] text-[#111] mb-4 max-w-2xl"
         style={{ fontFamily: "var(--font-outfit)" }}
       >
-        {isSignedIn ? "Welcome back." : "Your AI Co-Founder"}
+        {isSignedIn ? "Welcome back." : "Build a company. One person. One AI partner."}
       </h1>
 
       <p className="text-lg text-[#6B7280] max-w-lg mb-10 leading-relaxed">
