@@ -3,6 +3,7 @@ import Link from "next/link"
 import { prisma } from "@/lib/db"
 import QuickStartForm from "@/components/QuickStartForm"
 import DailyBrief from "@/components/DailyBrief"
+import PMTodoList from "@/components/PMTodoList"
 
 type Step = { num: number; icon: string; title: string; desc: string; href: string; done: boolean; why: string }
 
@@ -170,6 +171,11 @@ export default async function DashboardPage() {
               </Link>
             )
           })}
+        </div>
+
+        {/* ── Agent Panel ── */}
+        <div className="mt-8">
+          <PMTodoList />
         </div>
 
         {/* ── Stats (returning users) ── */}
