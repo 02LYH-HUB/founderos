@@ -1,5 +1,6 @@
 /**
  * AI PM Agent — Extracts executable tasks from roadmap and manages todo list
+ * Stores completed task IDs in roadmap.metadata (not phases) to avoid array corruption
  */
 
 import { prisma } from "@/lib/db"
@@ -24,12 +25,14 @@ export async function GET() {
   if (!roadmap) return Response.json({ tasks: [], progress: 0 })
 
   const phases = (roadmap.phases as any[]) || []
-  // Read from _completedTasks inside phases JSON (where POST writes it)
-  const completedIds: string[] = ((roadmap.phases as any)?._completedTasks as string[]) || []
+  if (!Array.isArray(phases)) return Response.json({ tasks: [], progress: 0 })
+
+  const meta = (roadmap.metadata as Record<string, any>) || {}
+  const completedIds: string[] = (meta.completedTasks as string[]) || []
 
   const tasks: PMTask[] = []
   phases.forEach((phase) => {
-    (typeof phase === "object" ? (phase.tasks || []) : []).forEach((task: any, j: number) => {
+    (phase.tasks || []).forEach((task: any, j: number) => {
       const id = `${phase.name}-${j}`
       tasks.push({ id, title: task.title, done: completedIds.includes(id), phase: phase.name, priority: task.priority || "medium" })
     })
@@ -58,8 +61,8 @@ export async function POST(req: Request) {
   })
   if (!roadmap) return Response.json({ error: "No roadmap" }, { status: 404 })
 
-  const phases = (roadmap.phases as any) || {}
-  const completedIds: string[] = (phases._completedTasks as string[]) || []
+  const meta = (roadmap.metadata as Record<string, any>) || {}
+  const completedIds: string[] = (meta.completedTasks as string[]) || []
   if (done) {
     if (!completedIds.includes(taskId)) completedIds.push(taskId)
   } else {
@@ -69,7 +72,7 @@ export async function POST(req: Request) {
 
   await prisma.roadmap.update({
     where: { id: roadmap.id },
-    data: { phases: { ...phases, _completedTasks: completedIds } as any },
+    data: { metadata: { ...meta, completedTasks: completedIds } },
   })
 
   return Response.json({ ok: true })

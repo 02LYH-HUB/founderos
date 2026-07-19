@@ -156,6 +156,7 @@ model Roadmap {
   version     Int       @default(1)
   phases      Json
   modelUsed   String?
+  metadata    Json      @default("{}")
   createdAt   DateTime  @default(now())
 
   @@unique([projectId, version])

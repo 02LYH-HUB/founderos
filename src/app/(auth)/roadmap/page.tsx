@@ -72,7 +72,7 @@ export default function RoadmapPage() {
 
         {/* Timeline */}
         <div className="relative pl-8 border-l-2 border-[#1a1a2e] space-y-10">
-          {phases.map((phase, i) => (
+          {Array.isArray(phases) && phases.map((phase, i) => (
             <div key={i} className="relative">
               {/* Dot */}
               <div className="absolute -left-[41px] w-4 h-4 rounded-full bg-[#9FFF00] border-4 border-[#0a0a0f]" />
