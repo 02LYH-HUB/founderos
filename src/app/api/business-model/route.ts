@@ -13,32 +13,39 @@ export async function POST(req: Request) {
   const { userId } = await auth()
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { industry, customerType } = await req.json()
+  const { industry, customerType, context } = await req.json()
   if (!industry || !customerType) return Response.json({ error: "Missing fields" }, { status: 400 })
 
   const projectId = await getProjectId(userId)
   if (!projectId) return Response.json({ error: "No project" }, { status: 404 })
 
   try {
-    const result = await generateBusinessModel(industry, customerType)
-    
+    const result = await generateBusinessModel({ industry, customerType, context })
+
     await prisma.businessModel.create({
       data: { projectId, canvas: result.canvas as any, version: 1 },
     })
 
+    const summary = `## Summary\n${result.summary}\n\n## Key Metrics\n${
+      Object.entries(result.metrics).map(([k, v]) => `- **${k}**: ${v}`).join("\n")
+    }\n\n## Risks\n${result.risks.map((r: string) => `- ${r}`).join("\n")}\n\n## Next Steps\n${result.nextSteps.map((s: string) => `- ${s}`).join("\n")}`
+
     await prisma.memory.create({
-      data: {
-        projectId,
-        type: "strategy",
-        title: `${industry} · ${customerType} 商业模式`,
-        content: result.summary,
-        source: "auto",
-        importance: 8,
-      },
+      data: { projectId, type: "strategy", title: `商业模式: ${industry}`, content: summary, source: "auto", importance: 8 },
     })
 
-    return Response.json({ summary: result.summary, canvas: result.canvas })
+    return Response.json(result)
   } catch (e: any) {
     return Response.json({ error: e.message }, { status: 500 })
   }
+}
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const projectId = searchParams.get("projectId")
+  if (!projectId) return Response.json({ canvas: null })
+  const bm = await prisma.businessModel.findFirst({
+    where: { projectId }, orderBy: { createdAt: "desc" },
+  })
+  return Response.json({ canvas: (bm?.canvas as any) || null })
 }
