@@ -97,7 +97,8 @@ export async function POST(req: Request) {
 
         // Step 4: Roadmap
         send({ step: "roadmap" })
-        const roadmap = await generateRoadmap({ stage: "idea", timeline: "3个月", context: `Research: ${research.summary}\nBusiness Model: ${bm.summary}` })
+        const timeline = inputs.marketSize?.includes("B") ? "12 个月" : "6 个月"
+        const roadmap = await generateRoadmap({ stage: "idea", timeline, context: `Research: ${research.summary}\nBusiness Model: ${bm.summary}` })
         send({ step: "roadmap", roadmap })
 
         await prisma.roadmap.upsert({
