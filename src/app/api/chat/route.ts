@@ -100,8 +100,8 @@ Guidelines:
           },
         })
 
-        // Auto-extract memory
-        if (text.length > 200) {
+        // Auto-extract memory (only for substantial conversations)
+        if (text.length > 800) {
           const firstLine = text.split("\n")[0].slice(0, 100)
           let embedding: number[] | null = null
           try {

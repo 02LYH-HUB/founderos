@@ -140,7 +140,9 @@ export default function ChatPage() {
       if (mod.engine === "research") {
         const r = await fetch("/api/research", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic: ans[0], context }),
+          body: JSON.stringify({
+            inputs: { problem: ans[0], who: ans[1], currentSolutions: ans[2], marketSize: ans[3], advantage: ans[4] },
+          }),
         })
         const d = await r.json()
         if (d.report) {
@@ -163,7 +165,7 @@ export default function ChatPage() {
       } else if (mod.engine === "bm") {
         const r = await fetch("/api/business-model", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ industry: ans[0], customerType: ans[0], context }),
+          body: JSON.stringify({ industry: "Startup", customerType: ans[0], context }),
         })
         const d = await r.json()
         if (d.summary) {

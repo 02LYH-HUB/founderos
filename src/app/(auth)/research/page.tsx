@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import ReportRenderer from "@/components/report/ReportRenderer"
 
 interface Report {
   id: string; topic: string; summary: string; status: string; createdAt: string
@@ -103,7 +104,7 @@ export default function ResearchPage() {
           <button onClick={() => setSelectedReport(null)} className="md:hidden text-sm text-[#71717a] mb-4">← Back</button>
           <div className="text-xs text-[#71717a] mb-2">{new Date(selectedReport.createdAt).toLocaleString()}</div>
           <h2 className="text-xl font-bold text-white mb-4" style={{ fontFamily: "Outfit, sans-serif" }}>{selectedReport.topic}</h2>
-          <div className="text-sm text-[#a1a1aa] leading-relaxed whitespace-pre-wrap">{selectedReport.summary || "Loading report..."}</div>
+          <ReportRenderer content={selectedReport.summary || ""} />
         </div>
       )}
       {!selectedReport && (

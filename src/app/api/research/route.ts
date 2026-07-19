@@ -2,69 +2,53 @@ import { prisma } from "@/lib/db"
 import { auth } from "@clerk/nextjs/server"
 import { generateResearch } from "@/lib/ai/research-engine"
 
-async function getProjectId(userId: string) {
-  const c = await prisma.company.findFirst({ where: { userId } })
-  if (!c) return null
-  const p = await prisma.project.findFirst({ where: { companyId: c.id } })
-  return p?.id ?? null
+async function ensureProject(userId: string) {
+  let company = await prisma.company.findFirst({ where: { userId } })
+  if (!company) company = await prisma.company.create({ data: { userId, name: "My Company" } })
+  let project = await prisma.project.findFirst({ where: { companyId: company.id } })
+  if (!project) project = await prisma.project.create({ data: { companyId: company.id, name: "My Startup", description: "My first project" } })
+  return project
 }
 
 export async function POST(req: Request) {
   const { userId } = await auth()
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { topic, context } = await req.json()
-  if (!topic && !context) return Response.json({ error: "Missing topic or context" }, { status: 400 })
+  const { inputs } = await req.json()
+  if (!inputs?.problem) return Response.json({ error: "Missing inputs.problem" }, { status: 400 })
 
-  const projectId = await getProjectId(userId)
-  if (!projectId) return Response.json({ error: "No project" }, { status: 404 })
+  const project = await ensureProject(userId)
 
   try {
-    // Parse context string (from interview answers) or use topic directly
-    let input: Parameters<typeof generateResearch>[0]
-    if (context && typeof context === "string") {
-      const lines = context.split("\n").filter(Boolean)
-      input = {
-        problem: lines[1]?.replace("A: ", "") || topic,
-        who: lines[3]?.replace("A: ", "") || "",
-        currentSolutions: lines[5]?.replace("A: ", "") || "",
-        marketSize: lines[7]?.replace("A: ", "") || "",
-        advantage: lines[9]?.replace("A: ", "") || "",
-      }
-    } else {
-      input = {
-        problem: topic,
-        who: "",
-        currentSolutions: "",
-        marketSize: "",
-        advantage: "",
-      }
-    }
+    const result = await generateResearch(inputs)
 
-    const result = await generateResearch(input)
+    const summary = [
+      `## Summary\n${result.summary}`,
+      result.scores ? `\n## Scores\n${Object.entries(result.scores).map(([k,v]) => `- **${k}**: ${v}/10`).join("\n")}` : "",
+      result.recommendation ? `\n## Recommendation\n${result.recommendation}` : "",
+    ].join("\n")
 
-    const summary = `## Summary\n${result.summary}\n\n## Scores\n${Object.entries(result.scores).map(([k,v]) => `- **${k}**: ${v}/10`).join("\n")}\n\n## Recommendation\n${result.recommendation}`
+    const fullContent = [
+      summary,
+      result.sections?.marketOverview ? `\n## 🌍 Market Overview\n${result.sections.marketOverview}` : "",
+      result.sections?.competitorLandscape ? `\n## ⚔️ Competitor Landscape\n${result.sections.competitorLandscape}` : "",
+      result.sections?.customerAnalysis ? `\n## 👤 Customer Analysis\n${result.sections.customerAnalysis}` : "",
+      result.sections?.unitEconomics ? `\n## 💰 Unit Economics\n${result.sections.unitEconomics}` : "",
+      result.sections?.goToMarket ? `\n## 🚀 Go-to-Market\n${result.sections.goToMarket}` : "",
+      result.sections?.risksAndMitigation ? `\n## ⚠️ Risks\n${result.sections.risksAndMitigation}` : "",
+      result.sections?.financialProjections ? `\n## 📈 Financial Projections\n${result.sections.financialProjections}` : "",
+    ].join("\n")
 
     await prisma.researchReport.create({
-      data: { projectId, topic: input.problem.slice(0, 200), summary, content: summary, status: "completed" },
+      data: { projectId: project.id, topic: inputs.problem.slice(0, 200), summary: fullContent, content: fullContent, status: "completed" },
     })
 
     await prisma.memory.create({
-      data: {
-        projectId, type: "research",
-        title: `市场研究: ${input.problem.slice(0, 60)}`,
-        content: summary, source: "auto", importance: 7,
-      },
+      data: { projectId: project.id, type: "research", title: `市场研究: ${inputs.problem.slice(0, 60)}`, content: summary, source: "auto", importance: 7 },
     })
 
     return Response.json({
-      report: {
-        topic: input.problem.slice(0, 200),
-        summary,
-        sections: result.sections,
-        scores: result.scores,
-        recommendation: result.recommendation,
-      },
+      report: { topic: inputs.problem.slice(0, 200), summary: fullContent, sections: result.sections, scores: result.scores, recommendation: result.recommendation },
     })
   } catch (e: any) {
     return Response.json({ error: e.message }, { status: 500 })

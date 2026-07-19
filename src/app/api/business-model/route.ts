@@ -2,11 +2,12 @@ import { prisma } from "@/lib/db"
 import { auth } from "@clerk/nextjs/server"
 import { generateBusinessModel } from "@/lib/ai/bm-engine"
 
-async function getProjectId(userId: string) {
-  const c = await prisma.company.findFirst({ where: { userId } })
-  if (!c) return null
-  const p = await prisma.project.findFirst({ where: { companyId: c.id } })
-  return p?.id ?? null
+async function ensureProject(userId: string) {
+  let company = await prisma.company.findFirst({ where: { userId } })
+  if (!company) company = await prisma.company.create({ data: { userId, name: "My Company" } })
+  let project = await prisma.project.findFirst({ where: { companyId: company.id } })
+  if (!project) project = await prisma.project.create({ data: { companyId: company.id, name: "My Startup", description: "My first project" } })
+  return project
 }
 
 export async function POST(req: Request) {
@@ -16,15 +17,14 @@ export async function POST(req: Request) {
   const { industry, customerType, context } = await req.json()
   if (!industry || !customerType) return Response.json({ error: "Missing fields" }, { status: 400 })
 
-  const projectId = await getProjectId(userId)
-  if (!projectId) return Response.json({ error: "No project" }, { status: 404 })
+  const project = await ensureProject(userId)
 
   try {
     const result = await generateBusinessModel({ industry, customerType, context })
 
     await prisma.businessModel.upsert({
-      where: { projectId_version: { projectId, version: 1 } },
-      create: { projectId, canvas: result.canvas as any, version: 1 },
+      where: { projectId_version: { projectId: project.id, version: 1 } },
+      create: { projectId: project.id, canvas: result.canvas as any, version: 1 },
       update: { canvas: result.canvas as any },
     })
 
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     }\n\n## Risks\n${result.risks.map((r: string) => `- ${r}`).join("\n")}\n\n## Next Steps\n${result.nextSteps.map((s: string) => `- ${s}`).join("\n")}`
 
     await prisma.memory.create({
-      data: { projectId, type: "strategy", title: `商业模式: ${industry}`, content: summary, source: "auto", importance: 8 },
+      data: { projectId: project.id, type: "strategy", title: `商业模式: ${industry}`, content: summary, source: "auto", importance: 8 },
     })
 
     return Response.json(result)
