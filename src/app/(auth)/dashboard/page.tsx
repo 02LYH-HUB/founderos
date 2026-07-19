@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 import QuickStartForm from "@/components/QuickStartForm"
 import DailyBrief from "@/components/DailyBrief"
 import PMTodoList from "@/components/PMTodoList"
+import CEOInsights from "@/components/CEOInsights"
 
 type Step = { num: number; icon: string; title: string; desc: string; href: string; done: boolean; why: string }
 
@@ -174,7 +175,8 @@ export default async function DashboardPage() {
         </div>
 
         {/* ── Agent Panel ── */}
-        <div className="mt-8">
+        <div className="mt-8 space-y-6">
+          <CEOInsights />
           <PMTodoList />
         </div>
 

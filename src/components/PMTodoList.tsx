@@ -19,10 +19,10 @@ export default function PMTodoList() {
   }, [])
 
   async function toggleTask(id: string, currentDone: boolean) {
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !currentDone } : t))
-    const newDone = tasks.filter(t => t.done !== (t.id === id ? !currentDone : t.done) ? false : true).length + (!currentDone ? 1 : 0)
-    const newProgress = tasks.length > 0 ? Math.round((newDone / tasks.length) * 100) : 0
-    setProgress(newProgress)
+    const updated = tasks.map(t => t.id === id ? { ...t, done: !currentDone } : t)
+    setTasks(updated)
+    const doneCount = updated.filter(t => t.done).length
+    setProgress(updated.length > 0 ? Math.round((doneCount / updated.length) * 100) : 0)
 
     await fetch("/api/pm-agent", {
       method: "POST",
