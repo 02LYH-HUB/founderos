@@ -22,8 +22,10 @@ export async function POST(req: Request) {
   try {
     const result = await generateBusinessModel({ industry, customerType, context })
 
-    await prisma.businessModel.create({
-      data: { projectId, canvas: result.canvas as any, version: 1 },
+    await prisma.businessModel.upsert({
+      where: { projectId_version: { projectId, version: 1 } },
+      create: { projectId, canvas: result.canvas as any, version: 1 },
+      update: { canvas: result.canvas as any },
     })
 
     const summary = `## Summary\n${result.summary}\n\n## Key Metrics\n${

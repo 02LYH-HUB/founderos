@@ -15,7 +15,7 @@ export default function RoadmapPage() {
 
   useEffect(() => {
     fetch("/api/dashboard")
-      .then(r => r.json())
+      .then(async r => { try { return await r.json() } catch { return {} } })
       .then(d => { if (d.project?.id) { setProjectId(d.project.id); loadRoadmap(d.project.id) } })
       .finally(() => setLoading(false))
   }, [])

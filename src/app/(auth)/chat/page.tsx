@@ -88,7 +88,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     fetch("/api/dashboard")
-      .then(r => r.json())
+      .then(async r => { try { return await r.json() } catch { return {} } })
       .then(d => { if (d.project?.id) { setProjectId(d.project.id); setProjectName(d.project.name) } })
       .catch(() => setError("项目加载失败"))
   }, [])
@@ -163,7 +163,7 @@ export default function ChatPage() {
       } else if (mod.engine === "bm") {
         const r = await fetch("/api/business-model", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ industry: ans[0], customerType: "B2C", context }),
+          body: JSON.stringify({ industry: ans[0], customerType: ans[0], context }),
         })
         const d = await r.json()
         if (d.summary) {
@@ -177,7 +177,7 @@ export default function ChatPage() {
       } else if (mod.engine === "roadmap") {
         const r = await fetch("/api/roadmap", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ stage: ans[0], timeline: "6 个月", context }),
+          body: JSON.stringify({ stage: ans[0], timeline: ans[4] || "6 个月", context }),
         })
         const d = await r.json()
         if (d.summary) {

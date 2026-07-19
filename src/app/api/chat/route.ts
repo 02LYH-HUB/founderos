@@ -14,6 +14,13 @@ async function ensureUser(userId: string) {
   }
 }
 
+async function getProjectId(userId: string) {
+  const c = await prisma.company.findFirst({ where: { userId } })
+  if (!c) return null
+  const p = await prisma.project.findFirst({ where: { companyId: c.id } })
+  return p?.id ?? null
+}
+
 const deepseek = createDeepSeek({
   apiKey: process.env.DEEPSEEK_API_KEY!,
   baseURL: process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com",
@@ -26,10 +33,15 @@ export async function POST(req: Request) {
       return Response.json({ error: "Missing projectId or message" }, { status: 400 })
     }
 
-    // Ensure user exists (for FK constraints)
+    // Verify ownership
     const { userId } = await auth()
-    if (userId) await ensureUser(userId)
+    if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
+    const ownedId = await getProjectId(userId)
+    if (!ownedId || ownedId !== projectId) {
+      return Response.json({ error: "Forbidden" }, { status: 403 })
+    }
 
+    await ensureUser(userId)
     // Semantic memory search
     let memories = await prisma.memory.findMany({
       where: { projectId },

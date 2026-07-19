@@ -22,7 +22,7 @@ export default function ResearchPage() {
 
   useEffect(() => {
     fetch("/api/dashboard")
-      .then(r => r.json())
+      .then(async r => { try { return await r.json() } catch { return {} } })
       .then(d => { if (d.project?.id) { setProjectId(d.project.id); loadReports(d.project.id) } })
   }, [])
 

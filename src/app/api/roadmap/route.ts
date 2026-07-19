@@ -22,8 +22,10 @@ export async function POST(req: Request) {
   try {
     const result = await generateRoadmap({ stage, timeline, context })
 
-    await prisma.roadmap.create({
-      data: { projectId, phases: result.phases as any, version: 1 },
+    await prisma.roadmap.upsert({
+      where: { projectId_version: { projectId, version: 1 } },
+      create: { projectId, phases: result.phases as any, version: 1 },
+      update: { phases: result.phases as any },
     })
 
     const summary = `## Summary\n${result.summary}\n\n## Risk Log\n${result.riskLog.map((r: any) => `- **${r.risk}** (${r.probability}/${r.impact}): ${r.mitigation}`).join("\n")}\n\n## Resources\n${result.resourcePlan.map((r: any) => `- ${r.role} — ${r.when}, ${r.cost}`).join("\n")}\n\n## Finance\n${result.financialProjection?.map((f: any) => `Month ${f.month}: burn ${f.burn}, revenue ${f.revenue} — ${f.milestone}`).join("\n") || ""}\n\n## Now\n${result.nextActions.map((a: string) => `- ${a}`).join("\n")}`
