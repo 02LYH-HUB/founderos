@@ -41,7 +41,7 @@ export default function ResearchPage() {
     try {
       const r = await fetch("/api/research", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: t }),
+        body: JSON.stringify({ inputs: { problem: t } }),
       })
       const data = await r.json()
       if (data.report) {

@@ -3,6 +3,14 @@
 import { useState, useEffect, useRef } from "react"
 import ReportRenderer from "@/components/report/ReportRenderer"
 
+/* ── Quick action buttons (execution layer) ── */
+const QUICK_ACTIONS = [
+  { label: "✍️ Draft pitch deck outline", prompt: "Based on my startup context, draft a 10-slide pitch deck outline with key points for each slide." },
+  { label: "📧 Cold outreach email", prompt: "Write a cold outreach email template I can send to potential customers, based on my target audience and value proposition." },
+  { label: "📋 This week's priorities", prompt: "Based on my roadmap and current project status, list the top 5 things I should do this week." },
+  { label: "🌐 Landing page copy", prompt: "Write the hero section copy (headline, subheadline, CTA) for my product's landing page." },
+]
+
 /* ── Proactive suggestions after each module ── */
 const MODULES = [
   {
@@ -78,6 +86,9 @@ export default function ChatPage() {
   const [generating, setGenerating] = useState(false)
   const [result, setResult] = useState<{ title: string; content: string } | null>(null)
   const [suggestions, setSuggestions] = useState<string[]>([])
+  const [quickChat, setQuickChat] = useState("")
+  const [quickResponse, setQuickResponse] = useState("")
+  const [quickLoading, setQuickLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Interview state
@@ -128,6 +139,25 @@ export default function ChatPage() {
   function handleAnswer() {
     if (!input.trim()) return
     handlePick(input.trim())
+  }
+
+  async function runQuickAction(prompt: string) {
+    if (!projectId) return
+    setQuickChat(prompt); setQuickResponse(""); setQuickLoading(true)
+    try {
+      const r = await fetch("/api/chat", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projectId, message: prompt }),
+      })
+      if (!r.ok) throw new Error("HTTP")
+      const reader = r.body?.getReader()
+      if (!reader) throw new Error("No body")
+      const decoder = new TextDecoder()
+      let text = ""
+      while (true) { const { done, value } = await reader.read(); if (done) break; text += decoder.decode(value, { stream: true }) }
+      setQuickResponse(text)
+    } catch (e: any) { setQuickResponse(`Error: ${e.message}`) }
+    setQuickLoading(false)
   }
 
   async function generate(mod: typeof MODULES[0], ans: string[]) {
@@ -243,6 +273,31 @@ export default function ChatPage() {
             ))}
           </div>
           {error && <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">{error}</div>}
+
+          {/* Quick actions — execution layer */}
+          {projectId && (
+            <div className="mt-8">
+              <p className="text-xs text-[#71717a] mb-3 uppercase tracking-wide">Quick Actions</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {QUICK_ACTIONS.map((a, i) => (
+                  <button key={i} onClick={() => runQuickAction(a.prompt)} disabled={quickLoading}
+                    className="p-4 rounded-xl bg-[#18181b] border border-[#27272a] text-left hover:border-[#9FFF00]/30 transition-all cursor-pointer group disabled:opacity-50">
+                    <div className="text-sm text-white font-medium mb-1">{a.label}</div>
+                    <p className="text-xs text-[#71717a] truncate">{a.prompt.slice(0, 60)}...</p>
+                  </button>
+                ))}
+              </div>
+              {quickLoading && <p className="text-xs text-[#9FFF00] mt-3 animate-pulse">Generating...</p>}
+              {quickResponse && (
+                <div className="mt-4 p-5 rounded-2xl bg-[#18181b] border border-[#9FFF00]/10 max-h-80 overflow-y-auto">
+                  <div className="text-xs text-[#71717a] mb-2">Response to: {quickChat}</div>
+                  <div className="text-sm text-[#e4e4e7] leading-relaxed whitespace-pre-wrap">{quickResponse}</div>
+                  <button onClick={() => { setQuickResponse(""); setQuickChat("") }}
+                    className="mt-3 text-xs text-[#71717a] hover:text-white transition-colors cursor-pointer">Clear</button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     )

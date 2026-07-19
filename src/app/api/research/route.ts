@@ -14,13 +14,14 @@ export async function POST(req: Request) {
   const { userId } = await auth()
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-  const { inputs } = await req.json()
-  if (!inputs?.problem) return Response.json({ error: "Missing inputs.problem" }, { status: 400 })
+  const { inputs, topic } = await req.json()
+  if (!inputs?.problem && !topic) return Response.json({ error: "Missing inputs.problem" }, { status: 400 })
+  const problem = inputs?.problem || topic
 
   const project = await ensureProject(userId)
 
   try {
-    const result = await generateResearch(inputs)
+    const result = await generateResearch({ ...inputs, problem })
 
     const summary = [
       `## Summary\n${result.summary}`,
@@ -40,15 +41,15 @@ export async function POST(req: Request) {
     ].join("\n")
 
     await prisma.researchReport.create({
-      data: { projectId: project.id, topic: inputs.problem.slice(0, 200), summary: fullContent, content: fullContent, status: "completed" },
+      data: { projectId: project.id, topic: problem.slice(0, 200), summary: fullContent, content: fullContent, status: "completed" },
     })
 
     await prisma.memory.create({
-      data: { projectId: project.id, type: "research", title: `市场研究: ${inputs.problem.slice(0, 60)}`, content: summary, source: "auto", importance: 7 },
+      data: { projectId: project.id, type: "research", title: `市场研究: ${problem.slice(0, 60)}`, content: summary, source: "auto", importance: 7 },
     })
 
     return Response.json({
-      report: { topic: inputs.problem.slice(0, 200), summary: fullContent, sections: result.sections, scores: result.scores, recommendation: result.recommendation },
+      report: { topic: problem.slice(0, 200), summary: fullContent, sections: result.sections, scores: result.scores, recommendation: result.recommendation },
     })
   } catch (e: any) {
     return Response.json({ error: e.message }, { status: 500 })
