@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server"
 import Link from "next/link"
 import { prisma } from "@/lib/db"
 import QuickStartForm from "@/components/QuickStartForm"
+import DailyBrief from "@/components/DailyBrief"
 
 type Step = { num: number; icon: string; title: string; desc: string; href: string; done: boolean; why: string }
 
@@ -52,6 +53,9 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] px-6 py-8 lg:px-12 lg:py-12">
       <div className="max-w-5xl mx-auto">
+        {/* ── Daily Briefing ── */}
+        <DailyBrief />
+
         {/* ── Quick Start Pipeline ── */}
         <QuickStartForm />
 
