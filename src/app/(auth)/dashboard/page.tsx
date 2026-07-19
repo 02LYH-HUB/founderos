@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server"
 import Link from "next/link"
 import { prisma } from "@/lib/db"
+import QuickStartForm from "@/components/QuickStartForm"
 
 type Step = { num: number; icon: string; title: string; desc: string; href: string; done: boolean; why: string }
 
@@ -51,6 +52,9 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0f] px-6 py-8 lg:px-12 lg:py-12">
       <div className="max-w-5xl mx-auto">
+        {/* ── Quick Start Pipeline ── */}
+        <QuickStartForm />
+
         {/* ── Hero Banner (new users) ── */}
         {isNew && (
           <div className="mb-10 p-6 rounded-2xl bg-gradient-to-br from-[#9FFF00]/10 to-[#9FFF00]/5 border border-[#9FFF00]/20">
