@@ -12,7 +12,6 @@ export async function GET(req: Request) {
 
   let memories
   if (q) {
-    // Semantic search via embed + cosine similarity
     const { searchMemories } = await import("@/lib/rag/retrieve")
     memories = await searchMemories(projectId, q, 50)
   } else {
@@ -33,7 +32,6 @@ export async function POST(req: Request) {
     return Response.json({ error: "Missing required fields" }, { status: 400 })
   }
 
-  // Generate embedding
   let embedding: number[] | null = null
   try {
     embedding = await embed(content.slice(0, 500))
@@ -53,4 +51,13 @@ export async function POST(req: Request) {
   })
 
   return Response.json({ memory })
+}
+
+export async function DELETE(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get("id")
+  if (!id) return Response.json({ error: "Missing id" }, { status: 400 })
+
+  await prisma.memory.delete({ where: { id } })
+  return Response.json({ ok: true })
 }

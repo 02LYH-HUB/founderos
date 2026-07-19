@@ -15,21 +15,31 @@ export default function MemoryPage() {
 
   const TYPES = ["all", "idea", "research", "strategy", "decision", "note", "feedback", "competitor", "goal"]
 
-  useEffect(() => {
-    fetch("/api/dashboard")
-      .then(r => r.json())
-      .then(d => { if (d.project?.id) setProjectId(d.project.id) })
-  }, [])
-
-  useEffect(() => {
-    if (!projectId) return
+  function loadMemories(pid: string, q?: string) {
     setLoading(true)
-    const params = new URLSearchParams({ projectId })
-    if (search) params.set("q", search)
+    const params = new URLSearchParams({ projectId: pid })
+    if (q) params.set("q", q)
     fetch(`/api/memory?${params}`)
       .then(r => r.json())
       .then(d => { setMemories(d.memories || []); setLoading(false) })
       .catch(() => setLoading(false))
+  }
+
+  async function deleteMemory(id: string) {
+    await fetch(`/api/memory?id=${id}`, { method: "DELETE" })
+    setMemories(prev => prev.filter(m => m.id !== id))
+    if (selected?.id === id) setSelected(null)
+  }
+
+  useEffect(() => {
+    fetch("/api/dashboard")
+      .then(r => r.json())
+      .then(d => { if (d.project?.id) { setProjectId(d.project.id); loadMemories(d.project.id) } })
+  }, [])
+
+  useEffect(() => {
+    if (!projectId) return
+    loadMemories(projectId, search)
   }, [projectId, search])
 
   const filtered = typeFilter === "all" ? memories : memories.filter(m => m.type === typeFilter)
@@ -92,6 +102,10 @@ export default function MemoryPage() {
             <span className="text-xs text-[#71717a]">{new Date(selected.createdAt).toLocaleString()}</span>
             <span className="text-xs text-[#71717a]">· {selected.source}</span>
             <span className="text-xs text-[#71717a]">· ⭐{"⭐".repeat(Math.min(selected.importance, 5))}</span>
+            <button
+              onClick={() => deleteMemory(selected.id)}
+              className="ml-auto text-xs px-3 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all cursor-pointer"
+            >🗑 Delete</button>
           </div>
           <h2 className="text-xl font-bold text-white mb-4" style={{ fontFamily: "Outfit, sans-serif" }}>{selected.title}</h2>
           <div className="text-sm text-[#a1a1aa] leading-relaxed whitespace-pre-wrap">{selected.content}</div>

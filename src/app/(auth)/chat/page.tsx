@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import ReportRenderer from "@/components/report/ReportRenderer"
 
-/* ── Module definitions with deep questionnaires ── */
+/* ── Proactive suggestions after each module ── */
 const MODULES = [
   {
     id: "research", icon: "📊", title: "Market Research",
@@ -76,6 +77,7 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
   const [result, setResult] = useState<{ title: string; content: string } | null>(null)
+  const [suggestions, setSuggestions] = useState<string[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Interview state
@@ -156,6 +158,7 @@ export default function ChatPage() {
             d.report.recommendation ? `\n## 💡 Recommendation\n${d.report.recommendation}` : "",
           ].filter(Boolean).join("\n")
           setResult({ title: `Market Research: ${ans[0]?.slice(0, 40) || "Analysis"}`, content: md })
+          setSuggestions(["Generate a Business Model Canvas based on this research", "Create a 3-month roadmap for this market", "Validate this idea with a deeper customer analysis"])
         }
       } else if (mod.engine === "bm") {
         const r = await fetch("/api/business-model", {
@@ -169,6 +172,7 @@ export default function ChatPage() {
           const risks = d.risks ? `\n## ⚠️ Risks\n${d.risks.map((r: string) => `- ${r}`).join("\n")}` : ""
           const next = d.nextSteps ? `\n## ✅ Next Steps\n${d.nextSteps.map((s: string) => `- ${s}`).join("\n")}` : ""
           setResult({ title: `Business Model: ${ans[0]?.slice(0, 40) || "Canvas"}`, content: `## Summary\n${d.summary}${metrics}${canvas}${risks}${next}` })
+          setSuggestions(["Create a 3-month roadmap based on this business model", "Research your target customer segment in depth", "Validate your pricing with a quick survey"])
         }
       } else if (mod.engine === "roadmap") {
         const r = await fetch("/api/roadmap", {
@@ -183,6 +187,7 @@ export default function ChatPage() {
           const finance = d.financialProjection ? `\n## 💰 Financial\n${d.financialProjection.map((f:any) => `Month ${f.month}: burn ${f.burn}, rev ${f.revenue} → ${f.milestone}`).join("\n")}` : ""
           const now = d.nextActions ? `\n## ⚡ This Week\n${d.nextActions.map((a: string) => `- ${a}`).join("\n")}` : ""
           setResult({ title: `Roadmap: ${ans[0]?.slice(0, 30) || "6-Month Plan"}`, content: `## Summary\n${d.summary}${phases}${riskLog}${resources}${finance}${now}` })
+          setSuggestions(["Start Week 1 tasks now — track them in your dashboard", "Generate a business model canvas if you haven't yet", "Share this roadmap with your co-founder or advisor"])
         }
       } else {
         // Idea → chat
@@ -288,19 +293,21 @@ export default function ChatPage() {
       {/* Result panel */}
       {result && (
         <div className="px-6 py-6 border-t border-[#1a1a2e] bg-[#0a0a0f]">
-          <div className="max-w-4xl mx-auto p-6 rounded-2xl bg-[#18181b] border border-[#9FFF00]/10">
-            <h2 className="text-lg font-bold text-white mb-4" style={{ fontFamily: "Outfit, sans-serif" }}>{result.title}</h2>
-            <div className="text-sm text-[#a1a1aa] leading-relaxed whitespace-pre-wrap max-h-96 overflow-y-auto">{result.content}</div>
-            <div className="mt-4 flex gap-3">
-              <button onClick={() => startModule(activeModule!)}
-                className="text-xs px-4 py-2 rounded-xl bg-[#27272a] text-[#a1a1aa] hover:text-white transition-all cursor-pointer">
-                Try again
-              </button>
-              <button onClick={() => setActiveModule(null)}
-                className="text-xs px-4 py-2 rounded-xl bg-[#9FFF00]/10 text-[#9FFF00] border border-[#9FFF00]/20 hover:bg-[#9FFF00]/20 transition-all cursor-pointer">
-                Back to modules
-              </button>
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white" style={{ fontFamily: "Outfit, sans-serif" }}>{result.title}</h2>
+              <div className="flex gap-2">
+                <button onClick={() => startModule(activeModule!)}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-[#27272a] text-[#a1a1aa] hover:text-white transition-all cursor-pointer">
+                  Try again
+                </button>
+                <button onClick={() => { setActiveModule(null); setResult(null); setSuggestions([]) }}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-[#9FFF00]/10 text-[#9FFF00] border border-[#9FFF00]/20 hover:bg-[#9FFF00]/20 transition-all cursor-pointer">
+                  ← Back to modules
+                </button>
+              </div>
             </div>
+            <ReportRenderer content={result.content} suggestions={suggestions} />
           </div>
         </div>
       )}

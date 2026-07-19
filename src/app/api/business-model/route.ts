@@ -47,5 +47,5 @@ export async function GET(req: Request) {
   const bm = await prisma.businessModel.findFirst({
     where: { projectId }, orderBy: { createdAt: "desc" },
   })
-  return Response.json({ canvas: (bm?.canvas as any) || null })
+  return Response.json(bm ? { canvas: bm.canvas as any, summary: "Generated", metrics: {}, risks: [], nextSteps: [] } : { canvas: null })
 }
