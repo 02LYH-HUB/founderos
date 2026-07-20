@@ -4,6 +4,8 @@
  * Framework: Strategyzer Business Model Canvas + a16z startup metrics + Sequoia business plan
  */
 
+import { safeJsonParse } from "./safe-parse"
+
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY!
 
 interface BMInput {
@@ -85,7 +87,7 @@ ${input.projectName ? `- **Project**: ${input.projectName}` : ""}
 
   if (!res.ok) throw new Error(`DeepSeek error: ${res.status}`)
   const data = (await res.json()) as { choices: [{ message: { content: string } }] }
-  const json = JSON.parse(data.choices[0].message.content)
+  const json = await safeJsonParse(data.choices[0].message.content, "Parse business model canvas JSON")
   return {
     summary: json.summary,
     canvas: json.canvas,
