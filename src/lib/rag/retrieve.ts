@@ -24,7 +24,7 @@ export async function searchMemories(projectId: string, query: string, limit = 5
   const memories = await prisma.memory.findMany({
     where: { projectId },
     orderBy: { createdAt: "desc" },
-    take: 200,
+    take: 50,
   })
 
   const scored = memories.map((m) => {
