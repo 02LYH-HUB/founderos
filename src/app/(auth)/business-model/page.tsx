@@ -53,6 +53,10 @@ export default function BMPage() {
     const updated = { ...canvas, [key]: editValue.trim() }
     setCanvas(updated)
     setEditing(null)
+    fetch("/api/business-model", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ canvas: updated }),
+    }).catch(() => {})
   }
 
   async function generateNew() {

@@ -57,11 +57,12 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const projectId = searchParams.get("projectId")
-  if (!projectId) return Response.json({ reports: [] })
+  const { userId } = await auth()
+  if (!userId) return Response.json({ reports: [] })
+
+  const project = await ensureProject(userId)
   const reports = await prisma.researchReport.findMany({
-    where: { projectId }, orderBy: { createdAt: "desc" }, take: 50,
+    where: { projectId: project.id }, orderBy: { createdAt: "desc" }, take: 50,
   })
   return Response.json({ reports })
 }

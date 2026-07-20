@@ -41,11 +41,16 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const projectId = searchParams.get("projectId")
-  if (!projectId) return Response.json({ phases: null })
+  const { userId } = await auth()
+  if (!userId) return Response.json({ phases: null })
+
+  const company = await prisma.company.findFirst({ where: { userId } })
+  if (!company) return Response.json({ phases: null })
+  const project = await prisma.project.findFirst({ where: { companyId: company.id } })
+  if (!project) return Response.json({ phases: null })
+
   const rd = await prisma.roadmap.findFirst({
-    where: { projectId }, orderBy: { createdAt: "desc" },
+    where: { projectId: project.id }, orderBy: { createdAt: "desc" },
   })
   return Response.json(rd ? { phases: rd.phases } : { phases: null })
 }

@@ -43,11 +43,37 @@ export async function POST(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const projectId = searchParams.get("projectId")
-  if (!projectId) return Response.json({ canvas: null })
+  const { userId } = await auth()
+  if (!userId) return Response.json({ canvas: null })
+
+  const company = await prisma.company.findFirst({ where: { userId } })
+  if (!company) return Response.json({ canvas: null })
+  const project = await prisma.project.findFirst({ where: { companyId: company.id } })
+  if (!project) return Response.json({ canvas: null })
+
   const bm = await prisma.businessModel.findFirst({
-    where: { projectId }, orderBy: { createdAt: "desc" },
+    where: { projectId: project.id }, orderBy: { createdAt: "desc" },
   })
   return Response.json(bm ? { canvas: bm.canvas as any, summary: "Generated", metrics: {}, risks: [], nextSteps: [] } : { canvas: null })
-}
+  }
+
+  export async function PATCH(req: Request) {
+  const { userId } = await auth()
+  if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
+
+  const { canvas } = await req.json()
+  if (!canvas) return Response.json({ error: "Missing canvas" }, { status: 400 })
+
+  const company = await prisma.company.findFirst({ where: { userId } })
+  if (!company) return Response.json({ error: "No project" }, { status: 404 })
+  const project = await prisma.project.findFirst({ where: { companyId: company.id } })
+  if (!project) return Response.json({ error: "No project" }, { status: 404 })
+
+  await prisma.businessModel.upsert({
+  where: { projectId_version: { projectId: project.id, version: 1 } },
+  create: { projectId: project.id, canvas, version: 1 },
+  update: { canvas },
+  })
+
+  return Response.json({ ok: true })
+  }

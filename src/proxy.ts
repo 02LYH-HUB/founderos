@@ -1,6 +1,13 @@
 import { clerkMiddleware } from "@clerk/nextjs/server"
 
-export default clerkMiddleware()
+export default clerkMiddleware(async (auth, req) => {
+  // Protect all pages except public routes
+  const url = new URL(req.url)
+  const isPublic = ["/", "/sign-in", "/sign-up", "/api/webhooks/clerk"].some(p => url.pathname.startsWith(p))
+  if (!isPublic) {
+    await auth.protect()
+  }
+})
 
 export const config = {
   matcher: [

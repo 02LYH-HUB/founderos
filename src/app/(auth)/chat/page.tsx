@@ -195,7 +195,7 @@ export default function ChatPage() {
       } else if (mod.engine === "bm") {
         const r = await fetch("/api/business-model", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ industry: "Startup", customerType: ans[0], context }),
+          body: JSON.stringify({ industry: ans[1] || "Startup", customerType: ans[0], context }),
         })
         const d = await r.json()
         if (d.summary) {
@@ -209,7 +209,7 @@ export default function ChatPage() {
       } else if (mod.engine === "roadmap") {
         const r = await fetch("/api/roadmap", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ stage: ans[0], timeline: ans[4] || "6 个月", context }),
+          body: JSON.stringify({ stage: ans[0], timeline: "6 个月", context }),
         })
         const d = await r.json()
         if (d.summary) {

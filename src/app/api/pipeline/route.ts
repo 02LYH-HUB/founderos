@@ -79,15 +79,17 @@ export async function POST(req: Request) {
         send({ step: "research" })
         let research = await generateResearch(inputs)
         
-        // 🔄 Reflection loop: research round 2
-        const researchFeedback = await reflect(research.summary, `Startup: ${inputs.problem}. Target: ${inputs.who}.`)
-        if (researchFeedback.hasGaps && researchFeedback.focus) {
-          const refinedInputs = { ...inputs, marketSize: `${inputs.marketSize || "growing"} — refine: ${researchFeedback.focus}` }
-          research = await generateResearch(refinedInputs)
-          send({ step: "research", research })
-        } else {
-          send({ step: "research", research })
+        // 🔄 Reflection loop: research round 2 (can be skipped with ?fast=1)
+        const url = new URL(req.url)
+        const fastMode = url.searchParams.get("fast") === "1"
+        if (!fastMode) {
+          const researchFeedback = await reflect(research.summary, `Startup: ${inputs.problem}. Target: ${inputs.who}.`)
+          if (researchFeedback.hasGaps && researchFeedback.focus) {
+            const refinedInputs = { ...inputs, advantage: `${inputs.advantage || ""} — focus: ${researchFeedback.focus}` }
+            research = await generateResearch(refinedInputs)
+          }
         }
+        send({ step: "research", research })
 
         await prisma.researchReport.create({
           data: { projectId: project.id, topic: inputs.problem.slice(0, 200), summary: research.summary, content: research.summary, status: "completed" },
