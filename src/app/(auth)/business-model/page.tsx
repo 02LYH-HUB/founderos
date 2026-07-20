@@ -163,6 +163,7 @@ export default function BusinessModelPage() {
         agentType={AGENT_MAP[followUps.key] || "ceo"}
         moduleTitle={LABELS[followUps.key] || followUps.key}
         moduleContent={canvas[followUps.key] || ""}
+        projectId={projectId}
       />
     </div>
   )
