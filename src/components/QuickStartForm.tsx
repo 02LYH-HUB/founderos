@@ -26,10 +26,33 @@ export default function QuickStartForm() {
   const [error, setError] = useState("")
   const [fastMode, setFastMode] = useState(false)
 
-  // Restore last plan from localStorage when navigating back
+  // Restore last plan: localStorage first, then DB fallback
   useEffect(() => {
     const saved = localStorage.getItem("qs-plan")
-    if (saved) { try { const p = JSON.parse(saved); setPlan(p.plan || ""); setInput(p.idea || "") } catch {} }
+    if (saved) {
+      try { const p = JSON.parse(saved); setPlan(p.plan || ""); setInput(p.idea || "") } catch {}
+      return
+    }
+    // localStorage empty — try loading from DB (survives cache clear / new device)
+    fetch("/api/dashboard")
+      .then(async r => { try { return await r.json() } catch { return {} } })
+      .then(d => {
+        const pid = d.project?.id
+        if (!pid) return
+        fetch(`/api/memory?projectId=${pid}&type=strategy`)
+          .then(r => r.json())
+          .then(d2 => {
+            const mems = d2.memories || []
+            if (mems.length > 0) {
+              const latest = mems[0]
+              setPlan(latest.content || "")
+              setInput(latest.title?.replace(/^创业计划:\s*/, "") || "")
+              localStorage.setItem("qs-plan", JSON.stringify({ plan: latest.content || "", idea: "" }))
+            }
+          })
+          .catch(() => {})
+      })
+      .catch(() => {})
   }, [])
 
   function setPlanPersist(plan: string, idea?: string) {
@@ -162,7 +185,7 @@ export default function QuickStartForm() {
             <div className="flex gap-2">
               <button onClick={() => { setPlanPersist(""); setProgress(null); setInput("") }}
                 className="text-xs px-3 py-1.5 rounded-lg bg-[#27272a] text-[#a1a1aa] hover:text-white transition-all cursor-pointer">
-                Start Over
+                {plan ? "Generate New Plan" : "Start Over"}
               </button>
               <button onClick={() => navigator.clipboard.writeText(plan)}
                 className="text-xs px-3 py-1.5 rounded-lg bg-[#9FFF00]/10 text-[#9FFF00] border border-[#9FFF00]/20 hover:bg-[#9FFF00]/20 transition-all cursor-pointer">

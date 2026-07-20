@@ -17,6 +17,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const projectId = searchParams.get("projectId")
   const q = searchParams.get("q")
+  const type = searchParams.get("type")
 
   if (!projectId) {
     return Response.json({ error: "Missing projectId" }, { status: 400 })
@@ -34,7 +35,7 @@ export async function GET(req: Request) {
     memories = await searchMemories(projectId, q, 50)
   } else {
     memories = await prisma.memory.findMany({
-      where: { projectId },
+      where: { projectId, ...(type ? { type } : {}) },
       orderBy: { createdAt: "desc" },
       take: 50,
     })
