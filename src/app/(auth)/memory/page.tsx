@@ -33,8 +33,12 @@ export default function MemoryPage() {
 
   useEffect(() => {
     fetch("/api/dashboard")
-      .then(r => r.json())
-      .then(d => { if (d.project?.id) { setProjectId(d.project.id); loadMemories(d.project.id) } })
+      .then(async r => { try { return await r.json() } catch { return {} } })
+      .then(d => {
+        if (d.project?.id) { setProjectId(d.project.id); loadMemories(d.project.id) }
+        else setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [])
 
   useEffect(() => {
