@@ -45,8 +45,8 @@ export default async function DashboardPage() {
         {/* ── Daily Briefing ── */}
         <DailyBrief />
 
-        {/* ── Quick Start (new users) ── */}
-        {isNew && <QuickStartForm />}
+        {/* ── Quick Start ── */}
+        <QuickStartForm />
 
         {/* ── Agent Panel ── */}
         <div className="space-y-6">
