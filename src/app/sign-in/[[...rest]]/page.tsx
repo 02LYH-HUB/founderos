@@ -1,12 +1,14 @@
-import { redirect } from "next/navigation"
+import { SignIn } from "@clerk/nextjs"
 import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
 
 export default async function SignInPage() {
   const { userId } = await auth()
   if (userId) redirect("/dashboard")
 
-  // Redirect to Clerk's hosted sign-in page (no JS CDN needed)
-  const signInUrl = new URL("https://humorous-shrimp-99.clerk.accounts.dev/sign-in")
-  signInUrl.searchParams.set("redirect_url", process.env.NEXT_PUBLIC_APP_URL || "https://soloforge-three.vercel.app/dashboard")
-  redirect(signInUrl.toString())
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-[#0a0a0f]">
+      <SignIn routing="hash" />
+    </div>
+  )
 }

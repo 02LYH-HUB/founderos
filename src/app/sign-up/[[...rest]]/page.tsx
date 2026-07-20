@@ -1,11 +1,14 @@
-import { redirect } from "next/navigation"
+import { SignUp } from "@clerk/nextjs"
 import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
 
 export default async function SignUpPage() {
   const { userId } = await auth()
   if (userId) redirect("/dashboard")
 
-  const signUpUrl = new URL("https://humorous-shrimp-99.clerk.accounts.dev/sign-up")
-  signUpUrl.searchParams.set("redirect_url", process.env.NEXT_PUBLIC_APP_URL || "https://soloforge-three.vercel.app/dashboard")
-  redirect(signUpUrl.toString())
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-[#0a0a0f]">
+      <SignUp routing="hash" />
+    </div>
+  )
 }
