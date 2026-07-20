@@ -15,6 +15,7 @@ async function ensureUser(userId: string) {
 }
 
 async function getProjectId(userId: string) {
+  await prisma.user.upsert({ where: { id: userId }, create: { id: userId, email: "" }, update: {} })
   const c = await prisma.company.findFirst({ where: { userId } })
   if (!c) return null
   const p = await prisma.project.findFirst({ where: { companyId: c.id } })

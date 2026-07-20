@@ -14,6 +14,8 @@ import { safeJsonParse } from "@/lib/ai/safe-parse"
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY!
 
 async function ensureProject(userId: string) {
+  // Auto-create user if Clerk webhook didn't fire
+  await prisma.user.upsert({ where: { id: userId }, create: { id: userId, email: "" }, update: {} })
   let company = await prisma.company.findFirst({ where: { userId } })
   if (!company) company = await prisma.company.create({ data: { userId, name: "My Company" } })
   let project = await prisma.project.findFirst({ where: { companyId: company.id } })

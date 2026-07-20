@@ -10,6 +10,7 @@ interface BriefItem {
 }
 
 async function ensureProject(userId: string) {
+  await prisma.user.upsert({ where: { id: userId }, create: { id: userId, email: "" }, update: {} })
   let company = await prisma.company.findFirst({ where: { userId } })
   if (!company) company = await prisma.company.create({ data: { userId, name: "My Company" } })
   let project = await prisma.project.findFirst({ where: { companyId: company.id } })
