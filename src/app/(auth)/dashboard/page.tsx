@@ -2,8 +2,7 @@ import { auth } from "@clerk/nextjs/server"
 import { prisma } from "@/lib/db"
 import QuickStartForm from "@/components/QuickStartForm"
 import DailyBrief from "@/components/DailyBrief"
-import PMTodoList from "@/components/PMTodoList"
-import CEOInsights from "@/components/CEOInsights"
+import AgentPanel from "@/components/AgentPanel"
 
 export default async function DashboardPage() {
   const { userId } = await auth()
@@ -49,10 +48,7 @@ export default async function DashboardPage() {
         <QuickStartForm />
 
         {/* ── Agent Panel ── */}
-        <div className="space-y-6">
-          <CEOInsights />
-          <PMTodoList />
-        </div>
+        <AgentPanel />
       </div>
     </div>
   )
