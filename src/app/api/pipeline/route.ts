@@ -8,6 +8,7 @@ import { auth } from "@clerk/nextjs/server"
 import { generateResearch } from "@/lib/ai/research-engine"
 import { generateBusinessModel } from "@/lib/ai/bm-engine"
 import { generateRoadmap } from "@/lib/ai/roadmap-engine"
+import { reflect } from "@/lib/ai/reflection-engine"
 
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY!
 
@@ -76,8 +77,17 @@ export async function POST(req: Request) {
 
         // Step 2: Market Research
         send({ step: "research" })
-        const research = await generateResearch(inputs)
-        send({ step: "research", research })
+        let research = await generateResearch(inputs)
+        
+        // 🔄 Reflection loop: research round 2
+        const researchFeedback = await reflect(research.summary, `Startup: ${inputs.problem}. Target: ${inputs.who}.`)
+        if (researchFeedback.hasGaps && researchFeedback.focus) {
+          const refinedInputs = { ...inputs, marketSize: `${inputs.marketSize || "growing"} — refine: ${researchFeedback.focus}` }
+          research = await generateResearch(refinedInputs)
+          send({ step: "research", research })
+        } else {
+          send({ step: "research", research })
+        }
 
         await prisma.researchReport.create({
           data: { projectId: project.id, topic: inputs.problem.slice(0, 200), summary: research.summary, content: research.summary, status: "completed" },
