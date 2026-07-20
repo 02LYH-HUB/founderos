@@ -9,6 +9,7 @@ import { generateResearch } from "@/lib/ai/research-engine"
 import { generateBusinessModel } from "@/lib/ai/bm-engine"
 import { generateRoadmap } from "@/lib/ai/roadmap-engine"
 import { reflect } from "@/lib/ai/reflection-engine"
+import { safeJsonParse } from "@/lib/ai/safe-parse"
 
 const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY!
 
@@ -42,7 +43,7 @@ User's idea: "${idea}"
     body: JSON.stringify({ model: "deepseek-chat", messages: [{ role: "user", content: prompt }], temperature: 0.3, response_format: { type: "json_object" } }),
   })
   const data = (await res.json()) as { choices: [{ message: { content: string } }] }
-  return JSON.parse(data.choices[0].message.content)
+  return safeJsonParse(data.choices[0].message.content, "Extract structured startup inputs from this text")
 }
 
 interface PipelineProgress {
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
         if (!fastMode) {
           const researchFeedback = await reflect(research.summary, `Startup: ${inputs.problem}. Target: ${inputs.who}.`)
           if (researchFeedback.hasGaps && researchFeedback.focus) {
-            const refinedInputs = { ...inputs, advantage: `${inputs.advantage || ""} — focus: ${researchFeedback.focus}` }
+            const refinedInputs = { ...inputs, advantage: researchFeedback.focus }
             research = await generateResearch(refinedInputs)
           }
         }

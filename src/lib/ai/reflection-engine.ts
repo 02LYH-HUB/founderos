@@ -8,14 +8,10 @@ const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY!
 
 interface ReflectionResult {
   hasGaps: boolean
-  gaps: string[]  // specific things that are vague/missing
-  focus: string   // refined prompt for the next iteration
+  gaps: string[]
+  focus: string
 }
 
-/**
- * Reflect on generated content to find gaps
- * Returns null if content is already solid
- */
 export async function reflect(output: string, context: string): Promise<ReflectionResult> {
   const prompt = `You are a critical reviewer. Analyze this AI-generated startup content and identify specific gaps.
 
@@ -36,7 +32,7 @@ Return ONLY JSON:
 Rules:
 - Be brutally honest. If the content is generic or surface-level, call it out.
 - Only report REAL gaps — don't invent issues for the sake of it.
-- Focus on: missing data, vague statements, lack of numbers, unrealistic claims, missing competitor analysis, unclear go-to-market.
+- Focus on: missing data, vague statements, lack of numbers, unrealistic claims.
 - hasGaps should be false ONLY if the content is genuinely actionable and specific.`
 
   try {
@@ -50,27 +46,4 @@ Rules:
   } catch {
     return { hasGaps: false, gaps: [], focus: "" }
   }
-}
-
-/**
- * Loop agent: execute → reflect → execute again until solid
- */
-export async function loopAgentResult(
-  initial: string,
-  context: string,
-  executor: (focus: string, previous: string) => Promise<string>,
-  maxIterations = 2
-): Promise<string> {
-  let result = initial
-
-  for (let i = 0; i < maxIterations; i++) {
-    const feedback = await reflect(result, context)
-    if (!feedback.hasGaps || !feedback.focus) break
-
-    // Execute refinement with focused prompt
-    const refined = await executor(feedback.focus, result)
-    result = refined
-  }
-
-  return result
 }
