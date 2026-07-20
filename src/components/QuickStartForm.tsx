@@ -23,13 +23,14 @@ export default function QuickStartForm() {
   const [progress, setProgress] = useState<Progress | null>(null)
   const [plan, setPlan] = useState("")
   const [error, setError] = useState("")
+  const [fastMode, setFastMode] = useState(false)
 
   async function startPipeline() {
     if (!input.trim() || input.length < 10) return
     setRunning(true); setError(""); setPlan(""); setProgress(null)
 
     try {
-      const r = await fetch("/api/pipeline", {
+      const r = await fetch(`/api/pipeline?fast=${fastMode ? "1" : "0"}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ idea: input.trim() }),
@@ -77,6 +78,15 @@ export default function QuickStartForm() {
             disabled={running}
             className="flex-1 bg-transparent text-white text-sm placeholder:text-[#71717a] focus:outline-none disabled:opacity-50"
           />
+          <button
+            onClick={() => setFastMode(!fastMode)}
+            className={`px-3 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+              fastMode ? "border-[#9FFF00]/50 bg-[#9FFF00]/10 text-[#9FFF00]" : "border-[#27272a] bg-transparent text-[#71717a]"
+            }`}
+            title={fastMode ? "Fast mode: skips reflection" : "Deep mode: 2-pass research"}
+          >
+            {fastMode ? "⚡ Fast" : "Deep"}
+          </button>
           <button
             onClick={startPipeline}
             disabled={running || input.length < 10}
