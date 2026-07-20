@@ -8,20 +8,23 @@ export async function POST(req: Request) {
   const { projectId, module, agentType, messages } = await req.json()
   if (!projectId || !module || !messages) return Response.json({ error: "Missing fields" }, { status: 400 })
 
-  // Delete old messages for this thread, then insert new ones
-  await prisma.conversation.deleteMany({
+  // Get existing count to compute offset
+  const existing = await prisma.conversation.count({
     where: { projectId, intent: `followup:${module}` },
   })
 
-  await prisma.conversation.createMany({
-    data: messages.map((m: { role: string; content: string }, i: number) => ({
-      projectId,
-      role: m.role,
-      content: m.content,
-      intent: `followup:${module}`,
-      metadata: { agentType, module, order: i },
-    })),
-  })
+  // Append only new messages beyond what's already saved
+  const toInsert = messages.slice(existing).map((m: { role: string; content: string }, i: number) => ({
+    projectId,
+    role: m.role,
+    content: m.content,
+    intent: `followup:${module}`,
+    metadata: { agentType, order: existing + i },
+  }))
+
+  if (toInsert.length > 0) {
+    await prisma.conversation.createMany({ data: toInsert })
+  }
 
   return Response.json({ ok: true })
 }
@@ -37,12 +40,21 @@ export async function GET(req: Request) {
 
   const rows = await prisma.conversation.findMany({
     where: { projectId, intent: `followup:${module}` },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "asc" }],
   })
 
-  const messages = rows
+  // Sort by metadata.order, fallback to createdAt order
+  rows.sort((a, b) => {
+    const aOrder = (a.metadata as any)?.order ?? 0
+    const bOrder = (b.metadata as any)?.order ?? 0
+    return aOrder - bOrder
+  })
+
+  const msgs = rows
     .filter(r => r.role === "user" || r.role === "assistant")
     .map(r => ({ role: r.role, content: r.content }))
 
-  return Response.json({ messages, agentType: rows[0]?.metadata as any as string | undefined })
+  const agentType = (rows[0]?.metadata as any)?.agentType
+
+  return Response.json({ messages: msgs, agentType })
 }
