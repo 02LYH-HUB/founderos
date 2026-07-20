@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import AuthGuard from "./AuthGuard"
 
 type Progress = {
   step: string
@@ -99,13 +100,15 @@ export default function QuickStartForm() {
           >
             {fastMode ? "⚡ Fast" : "Deep"}
           </button>
-          <button
-            onClick={startPipeline}
-            disabled={running || input.length < 10}
-            className="px-5 py-2.5 rounded-xl bg-[#9FFF00] text-[#0a0a0f] font-bold text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#8ae600] transition-all cursor-pointer whitespace-nowrap"
-          >
-            {running ? "..." : "Generate Plan →"}
-          </button>
+          <AuthGuard>
+            <button
+              onClick={startPipeline}
+              disabled={running || input.length < 10}
+              className="px-5 py-2.5 rounded-xl bg-[#9FFF00] text-[#0a0a0f] font-bold text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#8ae600] transition-all cursor-pointer whitespace-nowrap"
+            >
+              {running ? "..." : "Generate Plan →"}
+            </button>
+          </AuthGuard>
         </div>
       </div>
 

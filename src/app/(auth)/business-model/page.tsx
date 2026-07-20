@@ -22,7 +22,9 @@ const LABELS: Record<string, string> = {
 
 type Canvas = Record<string, string>
 
-export default function BMPage() {
+import AuthGuard from "@/components/AuthGuard"
+
+export default function BusinessModelPage() {
   const [projectId, setProjectId] = useState<string | null>(null)
   const [canvas, setCanvas] = useState<Canvas | null>(null)
   const [editing, setEditing] = useState<string | null>(null)

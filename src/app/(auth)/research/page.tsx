@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import AuthGuard from "@/components/AuthGuard"
 import ReportRenderer from "@/components/report/ReportRenderer"
 
 interface Report {
@@ -74,9 +75,11 @@ export default function ResearchPage() {
               className="w-full mb-3 bg-[#18181b] border border-[#27272a] rounded-xl px-3 py-2 text-sm text-white placeholder:text-[#71717a] focus:outline-none focus:border-[#9FFF00]/50"
             />
           )}
-          <button onClick={generate} disabled={!topic || generating}
-            className="w-full py-2.5 rounded-xl bg-[#9FFF00] text-[#0a0a0f] font-bold text-sm disabled:opacity-30 cursor-pointer hover:bg-[#8ae600] transition-all"
-          >{generating ? "生成中..." : "生成报告 →"}</button>
+          <AuthGuard>
+            <button onClick={generate} disabled={!topic || generating}
+              className="w-full py-2.5 rounded-xl bg-[#9FFF00] text-[#0a0a0f] font-bold text-sm disabled:opacity-30 cursor-pointer hover:bg-[#8ae600] transition-all"
+            >{generating ? "生成中..." : "生成报告 →"}</button>
+          </AuthGuard>
           {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
         </div>
 

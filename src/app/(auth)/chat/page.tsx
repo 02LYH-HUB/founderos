@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import AuthGuard from "@/components/AuthGuard"
 import ReportRenderer from "@/components/report/ReportRenderer"
 
 /* ── Quick action buttons (execution layer) ── */
@@ -260,16 +261,16 @@ export default function ChatPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {MODULES.map(m => (
-              <button key={m.id} onClick={() => startModule(m.id)}
-                className="p-6 rounded-2xl bg-[#18181b] border border-[#27272a] text-left hover:border-[#9FFF00]/30 transition-all cursor-pointer group"
-              >
-                <div className="text-3xl mb-3">{m.icon}</div>
-                <h3 className="text-base font-bold text-white mb-1">{m.title}</h3>
-                <p className="text-sm text-[#71717a]">{m.desc}</p>
-                <p className="text-xs text-[#9FFF00]/50 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  5 deep questions →
-                </p>
-              </button>
+              <AuthGuard key={m.id}>
+                <button onClick={() => startModule(m.id)} className="p-6 rounded-2xl bg-[#18181b] border border-[#27272a] text-left hover:border-[#9FFF00]/30 transition-all cursor-pointer group">
+                  <div className="text-3xl mb-3">{m.icon}</div>
+                  <h3 className="text-base font-bold text-white mb-1">{m.title}</h3>
+                  <p className="text-sm text-[#71717a]">{m.desc}</p>
+                  <p className="text-xs text-[#9FFF00]/50 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    5 deep questions →
+                  </p>
+                </button>
+              </AuthGuard>
             ))}
           </div>
           {error && <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">{error}</div>}
@@ -280,11 +281,13 @@ export default function ChatPage() {
               <p className="text-xs text-[#71717a] mb-3 uppercase tracking-wide">Quick Actions</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {QUICK_ACTIONS.map((a, i) => (
-                  <button key={i} onClick={() => runQuickAction(a.prompt)} disabled={quickLoading}
-                    className="p-4 rounded-xl bg-[#18181b] border border-[#27272a] text-left hover:border-[#9FFF00]/30 transition-all cursor-pointer group disabled:opacity-50">
-                    <div className="text-sm text-white font-medium mb-1">{a.label}</div>
-                    <p className="text-xs text-[#71717a] truncate">{a.prompt.slice(0, 60)}...</p>
-                  </button>
+                  <AuthGuard key={i}>
+                    <button onClick={() => runQuickAction(a.prompt)} disabled={quickLoading}
+                      className="p-4 rounded-xl bg-[#18181b] border border-[#27272a] text-left hover:border-[#9FFF00]/30 transition-all cursor-pointer group disabled:opacity-50">
+                      <div className="text-sm text-white font-medium mb-1">{a.label}</div>
+                      <p className="text-xs text-[#71717a] truncate">{a.prompt.slice(0, 60)}...</p>
+                    </button>
+                  </AuthGuard>
                 ))}
               </div>
               {quickLoading && <p className="text-xs text-[#9FFF00] mt-3 animate-pulse">Generating...</p>}
