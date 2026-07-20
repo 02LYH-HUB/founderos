@@ -8,7 +8,7 @@ export default async function SignUpPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#0a0a0f]">
-      <SignUp routing="hash" />
+      <SignUp />
     </div>
   )
 }

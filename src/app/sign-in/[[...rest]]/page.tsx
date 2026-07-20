@@ -18,7 +18,7 @@ export default async function SignInPage(props: { searchParams?: Promise<{ regis
             <p className="text-xs text-[#71717a] mt-1">Sign in to continue.</p>
           </div>
         )}
-        <SignIn routing="hash" />
+        <SignIn />
       </div>
     </div>
   )
