@@ -115,12 +115,24 @@ const TARGET_USERS = [
 ]
 
 const AGENTS = [
-  { label: "AI CEO", desc: "Vision, strategy, decisions", color: "#9FFF00" },
-  { label: "AI PM", desc: "Roadmaps, specs, prioritization", color: "#60a5fa" },
-  { label: "AI Engineer", desc: "Code, architecture, debugging", color: "#a78bfa" },
-  { label: "AI Marketing", desc: "Campaigns, SEO, content", color: "#f472b6" },
-  { label: "AI Designer", desc: "UI, brand, design systems", color: "#fb923c" },
-  { label: "AI Finance", desc: "Pricing, projections, unit economics", color: "#2dd4bf" },
+  { label: "AI CEO", desc: "Vision, strategy, decisions", icon: (
+    <svg viewBox="0 0 48 48" fill="none" className="w-8 h-8"><path d="M24 4L4 14v20l20 10 20-10V14L24 4z" stroke="#9FFF00" strokeWidth="2" fill="#9FFF00" fillOpacity="0.1"/><circle cx="24" cy="22" r="6" stroke="#9FFF00" strokeWidth="2"/><path d="M18 30c0-4 2.7-6 6-6s6 2 6 6" stroke="#9FFF00" strokeWidth="2"/></svg>
+  ) },
+  { label: "AI PM", desc: "Roadmaps, specs, prioritization", icon: (
+    <svg viewBox="0 0 48 48" fill="none" className="w-8 h-8"><rect x="6" y="8" width="36" height="32" rx="4" stroke="#60a5fa" strokeWidth="2" fill="#60a5fa" fillOpacity="0.1"/><line x1="14" y1="18" x2="34" y2="18" stroke="#60a5fa" strokeWidth="2"/><line x1="14" y1="26" x2="28" y2="26" stroke="#60a5fa" strokeWidth="2"/><line x1="14" y1="34" x2="24" y2="34" stroke="#60a5fa" strokeWidth="2"/></svg>
+  ) },
+  { label: "AI Engineer", desc: "Code, architecture, debug", icon: (
+    <svg viewBox="0 0 48 48" fill="none" className="w-8 h-8"><path d="M16 14l-8 10 8 10" stroke="#f472b6" strokeWidth="2.5" fill="none" strokeLinecap="round"/><path d="M32 14l8 10-8 10" stroke="#f472b6" strokeWidth="2.5" fill="none" strokeLinecap="round"/><line x1="27" y1="12" x2="22" y2="36" stroke="#f472b6" strokeWidth="2" strokeLinecap="round"/></svg>
+  ) },
+  { label: "AI Marketing", desc: "Campaigns, SEO, content", icon: (
+    <svg viewBox="0 0 48 48" fill="none" className="w-8 h-8"><path d="M8 30c0-4.4 3.6-8 8-8h4v16h-4c-4.4 0-8-3.6-8-8z" stroke="#a78bfa" strokeWidth="2" fill="#a78bfa" fillOpacity="0.1"/><path d="M24 20c0-3.3 1-6 4-6s4 2.7 4 6c0 4-4 6-4 10" stroke="#a78bfa" strokeWidth="2" fill="none"/><circle cx="34" cy="16" r="5" stroke="#a78bfa" strokeWidth="2"/></svg>
+  ) },
+  { label: "AI Designer", desc: "UI, brand, design systems", icon: (
+    <svg viewBox="0 0 48 48" fill="none" className="w-8 h-8"><circle cx="24" cy="24" r="16" stroke="#fbbf24" strokeWidth="2" fill="#fbbf24" fillOpacity="0.1"/><circle cx="24" cy="24" r="6" stroke="#fbbf24" strokeWidth="2"/><path d="M24 8v8m0 16v8M8 24h8m16 0h8" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round"/></svg>
+  ) },
+  { label: "AI Finance", desc: "Pricing, forecasts, unit economics", icon: (
+    <svg viewBox="0 0 48 48" fill="none" className="w-8 h-8"><rect x="6" y="16" width="36" height="24" rx="3" stroke="#34d399" strokeWidth="2" fill="#34d399" fillOpacity="0.1"/><path d="M16 8l3 8h10l3-8" stroke="#34d399" strokeWidth="2" fill="none"/><line x1="24" y1="8" x2="24" y2="16" stroke="#34d399" strokeWidth="2"/><circle cx="20" cy="28" r="3" stroke="#34d399" strokeWidth="1.5"/><circle cx="28" cy="28" r="3" stroke="#34d399" strokeWidth="1.5"/></svg>
+  ) },
 ]
 
 export default function HomePage() {
@@ -184,8 +196,8 @@ export default function HomePage() {
             {AGENTS.map((a, i) => (
               <motion.div key={a.label} className="group relative p-6 rounded-2xl border border-[#e5e7eb] bg-white/60 backdrop-blur-sm cursor-default overflow-hidden"
                 initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.06 }}
-                whileHover={{ y: -4, boxShadow: "0 8px 30px rgba(0,0,0,0.05)", borderColor: a.color + "40" }}>
-                <div className="absolute top-0 left-0 w-full h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: a.color }} />
+                whileHover={{ y: -4, boxShadow: "0 8px 30px rgba(0,0,0,0.05)" }}>
+                <div className="mb-3">{a.icon}</div>
                 <h3 className="font-outfit text-sm font-bold text-[#111] mb-1.5" style={{ fontFamily: "var(--font-outfit)" }}>{a.label}</h3>
                 <p className="text-xs text-[#9ca3af] leading-relaxed">{a.desc}</p>
               </motion.div>
