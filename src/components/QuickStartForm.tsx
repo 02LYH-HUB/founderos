@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 type Progress = {
   step: string
@@ -24,6 +24,18 @@ export default function QuickStartForm() {
   const [plan, setPlan] = useState("")
   const [error, setError] = useState("")
   const [fastMode, setFastMode] = useState(false)
+
+  // Restore last plan from localStorage when navigating back
+  useEffect(() => {
+    const saved = localStorage.getItem("qs-plan")
+    if (saved) { try { const p = JSON.parse(saved); setPlan(p.plan || ""); setInput(p.idea || "") } catch {} }
+  }, [])
+
+  function setPlanPersist(plan: string, idea?: string) {
+    setPlan(plan)
+    if (plan) localStorage.setItem("qs-plan", JSON.stringify({ plan, idea: idea || input }))
+    else localStorage.removeItem("qs-plan")
+  }
 
   async function startPipeline() {
     if (!input.trim() || input.length < 10) return
@@ -53,7 +65,7 @@ export default function QuickStartForm() {
             const data = JSON.parse(line)
             if (data.step === "error") { setError(data.error || "Failed"); setRunning(false); return }
             setProgress(data)
-            if (data.step === "done" && data.plan) setPlan(data.plan)
+            if (data.step === "done" && data.plan) setPlanPersist(data.plan, input)
           } catch {}
         }
       }
@@ -145,7 +157,7 @@ export default function QuickStartForm() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-white" style={{ fontFamily: "Outfit, sans-serif" }}>📋 Your Startup Plan</h2>
             <div className="flex gap-2">
-              <button onClick={() => { setPlan(""); setProgress(null); setInput("") }}
+              <button onClick={() => { setPlanPersist(""); setProgress(null); setInput("") }}
                 className="text-xs px-3 py-1.5 rounded-lg bg-[#27272a] text-[#a1a1aa] hover:text-white transition-all cursor-pointer">
                 Start Over
               </button>
