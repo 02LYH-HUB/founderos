@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import FollowUpDrawer from "@/components/FollowUpDrawer"
+import AuthGuard from "@/components/AuthGuard"
 
 const MODULES = [
   "customerSegments", "valuePropositions", "channels",
@@ -20,9 +22,19 @@ const LABELS: Record<string, string> = {
   costStructure: "Cost Structure",
 }
 
-type Canvas = Record<string, string>
+const AGENT_MAP: Record<string, string> = {
+  customerSegments: "marketing",
+  valuePropositions: "ceo",
+  channels: "marketing",
+  customerRelationships: "marketing",
+  revenueStreams: "finance",
+  keyResources: "engineer",
+  keyActivities: "engineer",
+  keyPartnerships: "ceo",
+  costStructure: "finance",
+}
 
-import AuthGuard from "@/components/AuthGuard"
+type Canvas = Record<string, string>
 
 export default function BusinessModelPage() {
   const [projectId, setProjectId] = useState<string | null>(null)
@@ -30,6 +42,7 @@ export default function BusinessModelPage() {
   const [editing, setEditing] = useState<string | null>(null)
   const [editValue, setEditValue] = useState("")
   const [loading, setLoading] = useState(true)
+  const [followUps, setFollowUps] = useState<{ key: string; open: boolean }>({ key: "", open: false })
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -84,9 +97,11 @@ export default function BusinessModelPage() {
           <div className="text-5xl mb-4">🎯</div>
           <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "Outfit, sans-serif" }}>No Canvas Yet</h2>
           <p className="text-sm text-[#71717a] mb-6">Generate your first business model canvas</p>
-          <button onClick={generateNew} className="px-6 py-3 rounded-xl bg-[#9FFF00] text-[#0a0a0f] font-bold text-sm hover:bg-[#8ae600] transition-all cursor-pointer">
-            Generate Canvas
-          </button>
+          <AuthGuard>
+            <button onClick={generateNew} className="px-6 py-3 rounded-xl bg-[#9FFF00] text-[#0a0a0f] font-bold text-sm hover:bg-[#8ae600] transition-all cursor-pointer">
+              Generate Canvas
+            </button>
+          </AuthGuard>
         </div>
       </div>
     )
@@ -97,22 +112,29 @@ export default function BusinessModelPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-xl font-bold text-white" style={{ fontFamily: "Outfit, sans-serif" }}>Business Model Canvas</h1>
-          <button onClick={generateNew} className="px-4 py-2 rounded-xl bg-[#9FFF00]/10 text-[#9FFF00] text-sm border border-[#9FFF00]/20 hover:bg-[#9FFF00]/20 transition-all cursor-pointer">
-            Regenerate
-          </button>
+          <AuthGuard>
+            <button onClick={generateNew} className="px-4 py-2 rounded-xl bg-[#9FFF00]/10 text-[#9FFF00] text-sm border border-[#9FFF00]/20 hover:bg-[#9FFF00]/20 transition-all cursor-pointer">
+              Regenerate
+            </button>
+          </AuthGuard>
         </div>
 
         {/* 3x3 Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {MODULES.map(key => (
-            <div
-              key={key}
-              className="p-5 rounded-xl bg-[#18181b] border border-[#27272a] hover:border-[#9FFF00]/20 transition-all group cursor-pointer min-h-[140px]"
-              onClick={() => startEdit(key)}
+            <div key={key}
+              className="relative p-5 rounded-xl bg-[#18181b] border border-[#27272a] hover:border-[#9FFF00]/20 transition-all group cursor-pointer min-h-[140px]"
+              onClick={() => !editing && startEdit(key)}
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xs font-bold text-[#a1a1aa] tracking-wide uppercase">{LABELS[key]}</h3>
-                <span className="text-[10px] text-[#71717a] opacity-0 group-hover:opacity-100 transition-opacity">Edit</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-[#71717a] opacity-0 group-hover:opacity-100 transition-opacity">Edit</span>
+                  <button onClick={e => { e.stopPropagation(); setFollowUps({ key, open: true }) }}
+                    className="text-xs opacity-0 group-hover:opacity-100 transition-all hover:scale-110 px-1.5 py-0.5 rounded-lg bg-[#9FFF00]/10 text-[#9FFF00] border border-[#9FFF00]/20"
+                    title={`Discuss ${LABELS[key]} with ${AGENT_MAP[key]}`}
+                  >💬</button>
+                </div>
               </div>
               {editing === key ? (
                 <div onClick={e => e.stopPropagation()}>
@@ -120,8 +142,7 @@ export default function BusinessModelPage() {
                     value={editValue}
                     onChange={e => setEditValue(e.target.value)}
                     className="w-full bg-[#0a0a0f] border border-[#9FFF00]/30 rounded-lg px-3 py-2 text-sm text-white resize-none focus:outline-none"
-                    rows={3}
-                    autoFocus
+                    rows={3} autoFocus
                   />
                   <div className="flex gap-2 mt-2">
                     <button onClick={() => saveEdit(key)} className="text-xs px-3 py-1.5 rounded-lg bg-[#9FFF00] text-[#0a0a0f] font-semibold cursor-pointer">Save</button>
@@ -135,6 +156,14 @@ export default function BusinessModelPage() {
           ))}
         </div>
       </div>
+
+      <FollowUpDrawer
+        open={followUps.open}
+        onClose={() => setFollowUps({ key: "", open: false })}
+        agentType={AGENT_MAP[followUps.key] || "ceo"}
+        moduleTitle={LABELS[followUps.key] || followUps.key}
+        moduleContent={canvas[followUps.key] || ""}
+      />
     </div>
   )
 }

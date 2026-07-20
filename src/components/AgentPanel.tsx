@@ -45,8 +45,9 @@ export default function AgentPanel() {
                 }`}>
                 <div className="text-2xl mb-2">{a.emoji}</div>
                 <h3 className="text-sm font-bold text-white mb-0.5">{a.name}</h3>
-                <p className="text-[10px] text-[#71717a]">{a.desc}</p>
-                {a.premium && <span className="text-[9px] text-[#9FFF00]/40 mt-1 block">Active</span>}
+                  <p className="text-[10px] text-[#71717a]">{a.desc}</p>
+                  {a.premium && <span className="text-[9px] text-[#9FFF00]/40 mt-1 block">Active</span>}
+                  <span className="text-[9px] text-[#9FFF00]/0 group-hover:text-[#9FFF00]/50 mt-0.5 block transition-all">💬 Click to chat</span>
               </button>
             ))}
           </div>

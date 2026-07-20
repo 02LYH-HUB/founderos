@@ -77,7 +77,7 @@ export default function MemoryPage() {
           {loading && <div className="p-5 text-sm text-[#71717a]">Loading...</div>}
           {!loading && filtered.length === 0 && (
             <div className="p-8 text-center text-sm text-[#71717a]">
-              🧠 No memories yet. Use the Workbench to start generating.
+              🧠 Memories will auto-populate as you generate plans. Go to Dashboard → input your idea → Generate Plan to see your first memory.
             </div>
           )}
           {filtered.map(m => (
