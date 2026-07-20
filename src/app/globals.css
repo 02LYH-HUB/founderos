@@ -4,8 +4,36 @@
   --font-outfit: "Outfit", sans-serif;
   --font-inter: "Inter", sans-serif;
   --color-accent: #9FFF00;
+  --color-accent-dim: #70b300;
+  --color-glass: rgba(255,255,255,0.03);
+  --color-glass-border: rgba(159,255,0,0.08);
 }
 
 body {
   font-family: "Inter", system-ui, sans-serif;
+}
+
+/* Tech glow effect for key elements */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(159,255,0,0.1), 0 0 40px rgba(159,255,0,0.03); }
+  50% { box-shadow: 0 0 20px rgba(159,255,0,0.2), 0 0 60px rgba(159,255,0,0.05); }
+}
+
+.glow-green {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+/* Glass card */
+.glass {
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(159,255,0,0.08);
+}
+
+/* Subtle gradient text for emphasis */
+.text-gradient {
+  background: linear-gradient(135deg, #9FFF00 0%, #70b300 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

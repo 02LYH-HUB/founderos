@@ -118,8 +118,8 @@ export default function QuickStartForm() {
               const done = i < currentStepIdx || (isDone && i <= currentStepIdx)
               return (
                 <div key={s.key} className="flex items-center gap-2 flex-1 last:flex-[0]">
-                  <div className={`w-7 h-7 rounded-lg grid place-items-center text-xs transition-all ${
-                    done ? "bg-[#9FFF00]/20 text-[#9FFF00]" : active ? "bg-[#9FFF00] text-[#0a0a0f] animate-pulse" : "bg-[#27272a] text-[#71717a]"
+                  <div className={`w-7 h-7 rounded-lg grid place-items-center text-sm font-bold transition-all ${
+                    done ? "bg-[#9FFF00]/20 text-[#9FFF00]" : active ? "bg-[#9FFF00] text-[#0a0a0f] animate-pulse shadow-[0_0_12px_rgba(159,255,0,0.3)]" : "bg-[#1a1a2e] text-[#9FFF00]/60 border border-[#9FFF00]/10"
                   }`}>
                     {done ? "✓" : s.icon}
                   </div>
